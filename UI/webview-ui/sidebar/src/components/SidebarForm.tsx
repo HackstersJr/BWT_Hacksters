@@ -28,14 +28,14 @@ export default function SidebarForm({
 
   return (
     <form className="sidebar-form" onSubmit={onSubmit}>
-      <section className={codeSelected ? 'selection-banner selected' : 'selection-banner not-selected'}>
+      <div className={codeSelected ? 'selection-banner selected' : 'selection-banner not-selected'}>
         <span className="selection-icon" aria-hidden="true">
-          {codeSelected ? '✓' : '⚠'}
+          {codeSelected ? '✓' : '⚠️'}
         </span>
-        <p className="selection-message">
-          {codeSelected ? '✓ Code snippet selected.' : 'Highlight code in the editor to analyze.'}
-        </p>
-      </section>
+        <span className="selection-message">
+          {codeSelected ? '✓ Code snippet selected.' : 'Highlight code in editor to analyze.'}
+        </span>
+      </div>
 
       <div className="form-field">
         <label className="field-label" htmlFor="tutorial-url">
@@ -53,7 +53,7 @@ export default function SidebarForm({
       </div>
 
       <button type="submit" className="primary-btn" disabled={!canGenerate || loading}>
-        {loading ? 'Generating...' : 'Generate Insight'}
+        {loading ? 'Generating…' : 'Generate Insight'}
       </button>
     </form>
   );

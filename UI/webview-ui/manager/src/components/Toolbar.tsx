@@ -18,52 +18,41 @@ export default function Toolbar({
   loading,
 }: ToolbarProps) {
   return (
-    <section className="panel toolbar">
+    <section className="toolbar">
       <div className="toolbar-filters">
         <label>
-          <span>Project</span>
+          <span className="filter-label">Project</span>
           <select
             value={filters.projectId ?? ''}
-            onChange={(event) =>
-              onChangeFilters({
-                ...filters,
-                projectId: event.target.value || undefined,
-              })
+            onChange={(e) =>
+              onChangeFilters({ ...filters, projectId: e.target.value || undefined })
             }
           >
             <option value="">All projects</option>
-            {projects.map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.name}
-              </option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
         </label>
 
         <label>
-          <span>Start date</span>
+          <span className="filter-label">Start date</span>
           <input
             type="date"
             value={filters.startDate ?? ''}
-            onChange={(event) =>
-              onChangeFilters({
-                ...filters,
-                startDate: event.target.value || undefined,
-              })
+            onChange={(e) =>
+              onChangeFilters({ ...filters, startDate: e.target.value || undefined })
             }
           />
         </label>
 
         <label>
-          <span>End date</span>
+          <span className="filter-label">End date</span>
           <input
             type="date"
             value={filters.endDate ?? ''}
-            onChange={(event) =>
-              onChangeFilters({
-                ...filters,
-                endDate: event.target.value || undefined,
-              })
+            onChange={(e) =>
+              onChangeFilters({ ...filters, endDate: e.target.value || undefined })
             }
           />
         </label>
@@ -71,7 +60,7 @@ export default function Toolbar({
 
       <div className="toolbar-actions">
         <button className="btn-primary" onClick={onRefresh} disabled={loading}>
-          {loading ? 'Refreshing...' : 'Refresh'}
+          {loading ? 'Refreshing…' : 'Refresh'}
         </button>
         <button className="btn-secondary" onClick={() => onExport('json')} disabled={loading}>
           Export JSON

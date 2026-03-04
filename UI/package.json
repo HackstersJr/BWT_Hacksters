@@ -8,6 +8,12 @@
   },
   "main": "./out/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "traecodecontext.openManager",
+        "title": "TraeCodeContext: Open History & Stats Manager"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
@@ -22,6 +28,13 @@
         {
           "id": "traecodecontext-sidebar",
           "name": "TraeCodeContext"
+        }
+      ]
+    },
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "traecodecontext.openManager"
         }
       ]
     }

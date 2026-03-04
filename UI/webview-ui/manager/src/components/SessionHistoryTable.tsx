@@ -14,14 +14,14 @@ const shortDateTime = (iso: string): string =>
     minute: '2-digit',
   });
 
-const formatNumber = (value: number): string => value.toLocaleString();
+const fmt = (v: number): string => v.toLocaleString();
 
 export default function SessionHistoryTable({ sessions, onOpenProject }: SessionHistoryTableProps) {
   return (
-    <section className="panel history-panel">
-      <header className="panel-header">
+    <section className="history-section">
+      <header className="section-header">
         <h2>Session History</h2>
-        <span>{sessions.length} session(s)</span>
+        <span className="session-count">{sessions.length} session{sessions.length !== 1 ? 's' : ''}</span>
       </header>
 
       <div className="table-wrap">
@@ -36,7 +36,7 @@ export default function SessionHistoryTable({ sessions, onOpenProject }: Session
               <th>Prompt</th>
               <th>Completion</th>
               <th>Saved</th>
-              <th>Actions</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -47,24 +47,27 @@ export default function SessionHistoryTable({ sessions, onOpenProject }: Session
                 </td>
               </tr>
             ) : (
-              sessions.map((session) => (
-                <tr key={session.id}>
-                  <td>{shortDateTime(session.timestamp)}</td>
-                  <td>{session.projectName}</td>
-                  <td className="mono">{session.fileName}</td>
-                  <td>{session.codeSummary}</td>
+              sessions.map((s) => (
+                <tr key={s.id}>
+                  <td>{shortDateTime(s.timestamp)}</td>
+                  <td>{s.projectName}</td>
+                  <td className="mono">{s.fileName}</td>
+                  <td>{s.codeSummary}</td>
                   <td>
-                    <a href={session.tutorialUrl} target="_blank" rel="noreferrer">
-                      Open
+                    <a href={s.tutorialUrl} target="_blank" rel="noreferrer">
+                      Open Tutorial
                     </a>
                   </td>
-                  <td>{formatNumber(session.tokenStats.promptTokens)}</td>
-                  <td>{formatNumber(session.tokenStats.completionTokens)}</td>
-                  <td>
-                    {formatNumber(session.tokenStats.savedTokens)} ({session.tokenStats.savedPercent.toFixed(1)}%)
+                  <td className="token-cell">{fmt(s.tokenStats.promptTokens)}</td>
+                  <td className="token-cell">{fmt(s.tokenStats.completionTokens)}</td>
+                  <td className="token-cell">
+                    {fmt(s.tokenStats.savedTokens)}
+                    <span style={{ opacity: 0.5, marginLeft: 4 }}>({s.tokenStats.savedPercent.toFixed(1)}%)</span>
                   </td>
                   <td>
-                    <button onClick={() => onOpenProject(session.projectId)}>Open Project</button>
+                    <button className="table-action-btn" onClick={() => onOpenProject(s.projectId)}>
+                      Open Project
+                    </button>
                   </td>
                 </tr>
               ))

@@ -5,46 +5,27 @@ interface StatsCardsProps {
   filteredSessionCount: number;
 }
 
-const formatNumber = (value: number): string => value.toLocaleString();
+const fmt = (v: number): string => v.toLocaleString();
 
 export default function StatsCards({ stats, filteredSessionCount }: StatsCardsProps) {
+  const cards = [
+    { label: 'Sessions', value: fmt(filteredSessionCount), sub: 'Visible with active filters' },
+    { label: 'Projects', value: fmt(stats.totalProjects), sub: 'Across manager history' },
+    { label: 'Prompt Tokens', value: fmt(stats.totalPromptTokens), sub: 'Total prompt usage' },
+    { label: 'Completion Tokens', value: fmt(stats.totalCompletionTokens), sub: 'Total model output' },
+    { label: 'Saved Tokens', value: fmt(stats.totalSavedTokens), sub: 'Selection-first savings' },
+    { label: 'Avg Savings', value: `${stats.averageSavedPercent.toFixed(1)}%`, sub: 'Global average saved' },
+  ];
+
   return (
     <section className="stats-grid">
-      <article className="panel stat-card">
-        <h3>Sessions</h3>
-        <p>{formatNumber(filteredSessionCount)}</p>
-        <small>Visible with active filters</small>
-      </article>
-
-      <article className="panel stat-card">
-        <h3>Projects</h3>
-        <p>{formatNumber(stats.totalProjects)}</p>
-        <small>Across manager history</small>
-      </article>
-
-      <article className="panel stat-card">
-        <h3>Prompt Tokens</h3>
-        <p>{formatNumber(stats.totalPromptTokens)}</p>
-        <small>Total prompt usage</small>
-      </article>
-
-      <article className="panel stat-card">
-        <h3>Completion Tokens</h3>
-        <p>{formatNumber(stats.totalCompletionTokens)}</p>
-        <small>Total model output</small>
-      </article>
-
-      <article className="panel stat-card">
-        <h3>Saved Tokens</h3>
-        <p>{formatNumber(stats.totalSavedTokens)}</p>
-        <small>Selection-first savings</small>
-      </article>
-
-      <article className="panel stat-card">
-        <h3>Avg Savings</h3>
-        <p>{stats.averageSavedPercent.toFixed(2)}%</p>
-        <small>Global average saved</small>
-      </article>
+      {cards.map((card) => (
+        <article key={card.label} className="stat-card">
+          <div className="stat-label">{card.label}</div>
+          <div className="stat-value">{card.value}</div>
+          <div className="stat-sub">{card.sub}</div>
+        </article>
+      ))}
     </section>
   );
 }

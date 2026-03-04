@@ -47,7 +47,7 @@ export default function App() {
   };
 
   return (
-    <main className="manager-root">
+    <div className="manager-root">
       <header className="title-row">
         <h1>TraeCodeContext Manager</h1>
         <p>Global session history and token usage overview</p>
@@ -67,6 +67,6 @@ export default function App() {
       <SessionHistoryTable sessions={filteredSessions} onOpenProject={openProject} />
 
       <StatusBar loading={loading} error={error} lastUpdatedAt={lastUpdatedAt} />
-    </main>
+    </div>
   );
 }

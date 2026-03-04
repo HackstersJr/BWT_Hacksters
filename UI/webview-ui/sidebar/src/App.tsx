@@ -77,24 +77,22 @@ export default function App() {
   };
 
   return (
-    <main className="sidebar-root">
-      <div className="sidebar-shell">
-        <header className="sidebar-header">
-          <h1>TraeCodeContext</h1>
-          <p>Generate context-aware insights from tutorials.</p>
-        </header>
+    <div className="sidebar-shell">
+      <header className="sidebar-header">
+        <h1>TraeCodeContext</h1>
+        <p>Generate context-aware insights from tutorials.</p>
+      </header>
 
-        <SidebarForm
-          tutorialUrl={tutorialUrl}
-          codeSelected={codeSelected}
-          loading={loading}
-          canGenerate={canGenerate}
-          onUrlChange={setTutorialUrl}
-          onGenerate={handleGenerate}
-        />
+      <SidebarForm
+        tutorialUrl={tutorialUrl}
+        codeSelected={codeSelected}
+        loading={loading}
+        canGenerate={canGenerate}
+        onUrlChange={setTutorialUrl}
+        onGenerate={handleGenerate}
+      />
 
-        <StatusPanel loading={loading} error={error} context={context} tokensSaved={tokensSaved} />
-      </div>
-    </main>
+      <StatusPanel loading={loading} error={error} context={context} tokensSaved={tokensSaved} />
+    </div>
   );
 }
