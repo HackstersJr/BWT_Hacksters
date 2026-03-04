@@ -28,6 +28,39 @@ Instead of relying on flat text searches or full-repo grepping, this tool levera
 - Passes this payload to a **local, lightweight model** which distills the content and returns only the required knowledge back to the main IDE agent.
 - Combines the distilled tutorial insights with the explicitly selected code and its structural graph footprint to generate accurate code suggestions.
 
+### 3. Unified External Resource Analyzer (`analyze_external_resource`)
+**Powered by Extractors + Axon KuzuBackend**
+- Merges URL-based extraction with graph-aware code context in a single MCP entry point.
+- Receives both a resource URL and the user-highlighted code context from the IDE.
+- Verifies that highlighted code belongs to the current project graph before analysis.
+- Optionally enriches the local graph by persisting resource-to-symbol relationships for future team queries.
+
+## Security Model
+
+To safely support URL ingestion and optional caching, the unified tool follows strict network and filesystem controls.
+
+### 1. Network Security (SSRF Mitigation)
+- **Protocol Allowlist**: Accepts only `http://` and `https://` URLs.
+- **Protocol Denylist**: Rejects unsafe schemes such as `file://`, `ftp://`, and other non-web protocols.
+- **Local Target Blocking**: Rejects requests to `localhost`, `127.0.0.1`, `0.0.0.0`, and private/internal network ranges.
+- **Recommended Domain Allowlist (Hackathon Mode)**: Optionally restricts sources to trusted domains such as `youtube.com`, `youtu.be`, `medium.com`, `dev.to`, `github.com`, and official documentation sites.
+
+### 2. File System Security (Workspace-Bounded I/O)
+- Adopts Axon's path philosophy: storage is anchored to `Path.cwd() / ".axon" / "kuzu"`.
+- Extractor-generated artifacts (cache, distilled knowledge, metadata) are bounded to a repo-local folder such as `.axon/knowledge_base/`.
+- Any path traversal patterns (for example `../`) are rejected.
+- No extractor-managed writes are permitted outside the active repository root.
+
+### 3. Graph Security and Validation
+- Uses direct access to Axon's `storage` (`KuzuBackend`) when integrated into `server.py`.
+- Verifies highlighted code or symbol context exists in the current graph prior to processing external knowledge.
+- Prevents analysis of code selections that do not belong to the indexed project.
+
+### 4. Knowledge Graph Enrichment (Optional)
+- After extracting and distilling a tutorial/resource, the tool can persist it as a node in Kuzu.
+- Creates an edge from the extracted resource to the selected code symbol/function.
+- Enables long-term, queryable team memory (for example: "which tutorial informed this function?").
+
 ## Core Goals
 
 By offloading context parsing to a local lightweight model and relying on Axon's precise graph context, this architecture aims to:
@@ -40,5 +73,8 @@ By offloading context parsing to a local lightweight model and relying on Axon's
 The MCP Server is composed of:
 - **Axon Graph Engine**: Runs locally to index the project and provide instantaneous structural graph queries for codebase context.
 - **Resource Extractors**: Dedicated modules optimized for fetching and parsing `YouTube transcripts` and `HTML/Web documentation`.
+- **Secure URL Validation Layer**: Enforces SSRF-safe protocol/domain/network checks before any outbound request.
+- **Workspace-Bounded Storage Layer**: Anchors all extractor and graph writes to repo-local `.axon/*` paths.
 - **Local Lightweight Model**: A small LLM running locally to distill the gathered transcripts and documentation into actionable knowledge chunks before sending it to the main agent.
+- **Kuzu Graph Enrichment Pipeline (Optional)**: Persists external resource nodes and edges linked to validated project symbols.
 - **Separate UI Component**: Ensures URL entry, context routing, and context boundary selections are managed clearly and separately from the main backend services.
