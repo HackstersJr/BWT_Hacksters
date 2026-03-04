@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { analyzeTutorial } from '../services/mcpClient';
 
 interface AnalyzeRequestMessage {
   type: 'analyzeRequest';
@@ -14,7 +15,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   constructor(private readonly extensionUri: vscode.Uri) {}
 
-  public resolveWebviewView(webviewView: vscode.WebviewView): void {
+  public resolveWebviewView(
+    webviewView: vscode.WebviewView,
+    _context: vscode.WebviewViewResolveContext,
+    _token: vscode.CancellationToken
+  ): void {
     this.view = webviewView;
 
     const sidebarDistUri = vscode.Uri.joinPath(this.extensionUri, 'webview-ui', 'sidebar', 'dist');
@@ -24,17 +29,47 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       localResourceRoots: [sidebarDistUri],
     };
 
+    // Prevent the React app from unmounting when user switches tabs
+    (webviewView as unknown as { retainContextWhenHidden: boolean }).retainContextWhenHidden = true;
+
     webviewView.webview.html = this.getHtmlForWebview(webviewView.webview, sidebarDistUri);
 
-    webviewView.webview.onDidReceiveMessage((message: unknown) => {
+    webviewView.webview.onDidReceiveMessage(async (message: unknown) => {
       const maybe = message as Partial<AnalyzeRequestMessage>;
 
       if (maybe?.type !== 'analyzeRequest') {
         return;
       }
 
-      const url = maybe.payload?.url ?? '(missing URL)';
-      vscode.window.showInformationMessage(`Analyze request: ${url}. Sending to MCP backend...`);
+      const url = maybe.payload?.url ?? '';
+      if (!url) {
+        return;
+      }
+
+      // Grab the selected code from the active editor
+      const editor = vscode.window.activeTextEditor;
+      const selectedCode = editor ? editor.document.getText(editor.selection) : '';
+
+      try {
+        const result = await analyzeTutorial(url, selectedCode);
+
+        void this.view?.webview.postMessage({
+          type: 'analyzeResponse',
+          payload: {
+            context: result.context,
+            tokensSaved: result.tokensSaved,
+          },
+        });
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+
+        void this.view?.webview.postMessage({
+          type: 'analyzeError',
+          payload: {
+            message: errorMessage,
+          },
+        });
+      }
     });
   }
 
@@ -62,7 +97,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; img-src ${webview.cspSource} https:; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';"
+      content="default-src 'none'; img-src ${webview.cspSource} https:; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';"
     />
     <link rel="stylesheet" href="${styleUri}" />
     <title>TraeCodeContext</title>

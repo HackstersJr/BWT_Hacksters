@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { getGlobalHistory } from '../services/mcpClient';
 
 interface ManagerRequestMessage {
   type: 'requestRefreshHistory';
@@ -32,12 +33,16 @@ export class ManagerPanel {
       return;
     }
 
+    const managerDistUri = vscode.Uri.joinPath(extensionUri, 'webview-ui', 'manager', 'dist');
+
     const panel = vscode.window.createWebviewPanel(
       ManagerPanel.viewType,
       'TraeCodeContext Manager',
       vscode.ViewColumn.One,
       {
         enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [managerDistUri],
       }
     );
 
@@ -55,30 +60,30 @@ export class ManagerPanel {
     this.panel.webview.html = this.getHtmlForWebview(this.panel.webview);
 
     this.panel.webview.onDidReceiveMessage((message: IncomingManagerMessage) => {
-      this.handleMessage(message);
+      void this.handleMessage(message);
     });
   }
 
-  private handleMessage(message: IncomingManagerMessage): void {
+  private async handleMessage(message: IncomingManagerMessage): Promise<void> {
     if (message.type === 'requestRefreshHistory') {
-      vscode.window.showInformationMessage('Refreshing manager history...');
+      try {
+        const data = await getGlobalHistory();
 
-      setTimeout(() => {
         void this.panel.webview.postMessage({
           type: 'historyData',
+          payload: data,
+        });
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+
+        void this.panel.webview.postMessage({
+          type: 'historyError',
           payload: {
-            sessions: [],
-            global: {
-              totalSessions: 0,
-              totalProjects: 0,
-              totalPromptTokens: 0,
-              totalCompletionTokens: 0,
-              totalSavedTokens: 0,
-              averageSavedPercent: 0,
-            },
+            code: 'FETCH_FAILED',
+            message: errorMessage,
           },
         });
-      }, 600);
+      }
 
       return;
     }
@@ -102,7 +107,7 @@ export class ManagerPanel {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; img-src ${webview.cspSource} https:; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';"
+      content="default-src 'none'; img-src ${webview.cspSource} https:; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';"
     />
     <link rel="stylesheet" href="${styleUri}" />
     <title>TraeCodeContext Manager</title>
