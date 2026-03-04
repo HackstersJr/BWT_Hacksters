@@ -1,114 +1,87 @@
 # TraeCodeContext — Backend Integration Guide
 
 > **Audience:** MCP Backend Developers  
+> **Scope:** This guide covers the **one file** you need to edit (`mcpClient.ts`) and nothing else.  
 > **Last Updated:** March 2026
 
 ---
 
-## 1. Quick Start
+## 1. Architecture — How Messages Flow
+
+```
+  User action                    Extension Host                 Your code
+ ┌──────────┐   postMessage   ┌──────────────────┐   call    ┌──────────────┐
+ │ Sidebar   │ ──────────────▸│ SidebarProvider   │ ────────▸│              │
+ │ React App │◂────────────── │   .ts             │◂──────── │ mcpClient.ts │
+ └──────────┘  analyzeResponse└──────────────────┘  return   │              │
+                                                              │  analyze-    │
+ ┌──────────┐   postMessage   ┌──────────────────┐   call    │  Tutorial()  │
+ │ Manager   │ ──────────────▸│ ManagerPanel.ts   │ ────────▸│              │
+ │ React App │◂────────────── │                    │◂──────── │  getGlobal-  │
+ └──────────┘   historyData   └──────────────────┘  return   │  History()   │
+                                                              └──────────────┘
+```
+
+**Key point:** The React UIs never call the backend directly. They send JSON messages to the Extension Host providers, which call `mcpClient.ts`, get results, and post them back. You only edit `mcpClient.ts`.
+
+---
+
+## 2. Setup & Build
 
 ```bash
-# 1. Clone the repo and navigate to the UI folder
+# 1. Navigate to the UI folder
 cd BWT_Hacksters/UI
 
-# 2. Install extension host dependencies
+# 2. Install all dependencies (extension host + both webview UIs)
 npm install
-
-# 3. Install React webview dependencies
 cd webview-ui/sidebar && npm install && cd ../manager && npm install && cd ../..
 
-# 4. Build everything (webviews + extension host) in one command
+# 3. Build everything in one command
 npm run build:all
 
-# 5. Open VS Code, press F5 to launch the Extension Development Host
-#    — The Sidebar appears in the Activity Bar (left icon)
-#    — The Manager opens via Command Palette → "TraeCodeContext: Open History & Stats Manager"
+# 4. Press F5 in VS Code to launch the Extension Development Host
 ```
 
-### Script Reference
-
-| Script | Command | Purpose |
-|---|---|---|
-| `npm run compile` | `tsc -p ./` | Compile extension host TypeScript → `out/` |
-| `npm run watch` | `tsc -watch -p ./` | Watch-mode compilation for dev |
-| `npm run build:all` | Builds sidebar + manager + extension | Full production build |
+| Script | What it does |
+|---|---|
+| `npm run compile` | Compiles extension host TypeScript → `out/` |
+| `npm run watch` | Watch-mode compilation for dev |
+| `npm run build:sidebar` | Builds the Sidebar React app → `webview-ui/sidebar/dist/` |
+| `npm run build:manager` | Builds the Manager React app → `webview-ui/manager/dist/` |
+| `npm run build:all` | Runs `build:sidebar` + `build:manager` + `compile` sequentially |
 
 ---
 
-## 2. Architecture Overview
+## 3. The Integration Point — `src/services/mcpClient.ts`
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                     VS Code Host                         │
-│                                                          │
-│  ┌────────────────┐         ┌─────────────────────────┐  │
-│  │  extension.ts  │─────────│  SidebarProvider.ts     │  │
-│  │  (activation)  │         │  (WebviewViewProvider)   │  │
-│  └──────┬─────────┘         └──────────┬──────────────┘  │
-│         │                              │                  │
-│         │ registers command            │ postMessage ↕    │
-│         ▼                              ▼                  │
-│  ┌─────────────────┐         ┌─────────────────────┐     │
-│  │ ManagerPanel.ts │         │ Sidebar React App   │     │
-│  │ (WebviewPanel)  │         │ (webview-ui/sidebar) │     │
-│  └──────┬──────────┘         └─────────────────────┘     │
-│         │ postMessage ↕                                   │
-│         ▼                                                 │
-│  ┌─────────────────────┐                                  │
-│  │ Manager React App   │                                  │
-│  │ (webview-ui/manager)│                                  │
-│  └─────────────────────┘                                  │
-│                                                          │
-│  ┌─────────────────────────────────────────────────────┐ │
-│  │                 mcpClient.ts                         │ │
-│  │  ✦ analyzeTutorial(url, selectedCode)               │ │
-│  │  ✦ getGlobalHistory()                               │ │
-│  │                                                     │ │
-│  │  ⬆ THIS IS THE ONLY FILE YOU NEED TO EDIT ⬆        │ │
-│  └─────────────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────┘
-```
+This file exports **two async functions**. Both currently return mock data. Replace the function bodies with real MCP SDK calls. Do **not** change the return types.
 
-**Key principle:** The React UIs are **dumb presentation layers**. They send simple JSON messages to the Extension Host, which calls `mcpClient.ts`, gets results, and posts them back. The React apps never call the backend directly.
+### 3a. `analyzeTutorial(url, selectedCode) → AnalyzeResult`
 
----
-
-## 3. Where to Add Backend Logic
-
-### File: `src/services/mcpClient.ts`
-
-This is the **single integration point**. It exports two async functions:
-
-### `analyzeTutorial(url: string, selectedCode: string): Promise<AnalyzeResult>`
-
-Called when the user clicks **"Generate Insight"** in the Sidebar.
-
-- **Input:** The tutorial URL + the code the user highlighted in the editor.
-- **Output:** Must return an object matching:
+**When it runs:** User pastes a tutorial URL, selects code in the editor, clicks "Generate Insight" in the Sidebar.
 
 ```typescript
-interface AnalyzeResult {
-  context: string;      // The generated insight text shown to the user
-  tokensSaved: number;  // Number of tokens saved via selection context
+export interface AnalyzeResult {
+  /** Human-readable context insight displayed in the Sidebar */
+  context: string;
+  /** Number of tokens saved by including the code selection */
+  tokensSaved: number;
 }
 ```
 
-- **On error:** Throw a standard `Error`. The provider catches it and sends an `analyzeError` message to the UI.
+**Error handling:** Throw a standard `Error`. The SidebarProvider catches it and displays the error message in the UI.
 
-### `getGlobalHistory(): Promise<ManagerData>`
+### 3b. `getGlobalHistory() → ManagerData`
 
-Called when the user opens the Manager panel or clicks **"Refresh"**.
-
-- **Input:** None (filters are applied client-side).
-- **Output:** Must return an object matching:
+**When it runs:** User opens the Manager panel *or* clicks the "Refresh" button. Filters are applied client-side — return the full dataset.
 
 ```typescript
-interface ManagerData {
+export interface ManagerData {
   sessions: SessionSummary[];
   global: GlobalStats;
 }
 
-interface SessionSummary {
+export interface SessionSummary {
   id: string;
   projectId: string;
   projectName: string;
@@ -119,15 +92,15 @@ interface SessionSummary {
   tokenStats: TokenStats;
 }
 
-interface TokenStats {
+export interface TokenStats {
   promptTokens: number;
   completionTokens: number;
   totalTokens: number;
   savedTokens: number;
-  savedPercent: number;
+  savedPercent: number;     // 0–100
 }
 
-interface GlobalStats {
+export interface GlobalStats {
   totalSessions: number;
   totalProjects: number;
   totalPromptTokens: number;
@@ -139,39 +112,48 @@ interface GlobalStats {
 
 ---
 
-## 4. Message Contracts
+## 4. Message Contracts (Reference Only)
 
-The Extension Host communicates with the React UIs via `webview.postMessage()`. You do **not** need to touch any of this — the providers handle it automatically. This section is here for reference only.
+You do **not** need to modify any messages — the providers handle serialization automatically. This section exists for debugging.
 
 ### Sidebar Messages
 
-| Direction | `type` | Payload |
+| Direction | `type` | Payload Schema |
 |---|---|---|
-| **UI → Host** | `analyzeRequest` | `{ url: string }` |
-| **Host → UI** | `analyzeResponse` | `{ context: string, tokensSaved: number }` |
-| **Host → UI** | `analyzeError` | `{ message: string }` |
-| **Host → UI** | `selectionChange` | `{ hasSelection: boolean }` |
+| UI → Host | `analyzeRequest` | `{ url: string }` |
+| Host → UI | `analyzeResponse` | `{ context: string, tokensSaved: number }` |
+| Host → UI | `analyzeError` | `{ message: string }` |
+| Host → UI | `selectionChange` | `{ hasSelection: boolean }` |
+| UI → Host | `openManager` | *(no payload)* |
 
 ### Manager Messages
 
-| Direction | `type` | Payload |
+| Direction | `type` | Payload Schema |
 |---|---|---|
-| **UI → Host** | `requestRefreshHistory` | `{ projectId?, startDate?, endDate? }` |
-| **Host → UI** | `historyData` | `ManagerData` (see above) |
-| **Host → UI** | `historyError` | `{ code: string, message: string }` |
-| **UI → Host** | `exportSessions` | `{ format: 'json' \| 'csv' }` |
+| UI → Host | `requestRefreshHistory` | `{ projectId?: string, startDate?: string, endDate?: string }` |
+| Host → UI | `historyData` | `ManagerData` (full object, see §3b) |
+| Host → UI | `historyError` | `{ code: string, message: string }` |
+| UI → Host | `exportSessions` | `{ format: 'json' \| 'csv' }` |
 
 ---
 
-## 5. Testing Your Changes
+## 5. Testing & Debugging
 
 1. Edit **only** `src/services/mcpClient.ts`.
-2. Run `npm run compile` (or `npm run watch` in the background).
-3. Press **F5** in VS Code to launch the Extension Development Host.
-4. Open the Sidebar, paste a URL, select code → click **Generate Insight**.
-5. Open the Manager via Command Palette → verify session history loads.
+2. Run `npm run compile` (or keep `npm run watch` running).
+3. Press **F5** → Extension Development Host launches.
+4. **Sidebar test:** open the sidebar from the activity bar, select code in the editor, paste a URL, click "Generate Insight".
+5. **Manager test:** open Command Palette → `TraeCodeContext: Open History & Stats Manager`, verify stats cards and table populate.
+6. **Errors:** check VS Code's **Output** panel → select **"Extension Host"** from the dropdown.
 
-If something breaks, check the **Output panel → "Extension Host"** for errors.
+### Common Issues
+
+| Symptom | Fix |
+|---|---|
+| Sidebar shows "No code selected" | Highlight at least one character in an open editor |
+| Manager table is empty | Ensure `getGlobalHistory()` returns at least one session |
+| Webview blank after code change | Rebuild: `npm run build:all`, then reload the Extension Host |
+| CSP errors in devtools console | Do not add external script/style URLs — all assets are local |
 
 ---
 
@@ -180,18 +162,23 @@ If something breaks, check the **Output panel → "Extension Host"** for errors.
 ```
 UI/
 ├── package.json                    ← Extension manifest + build scripts
-├── tsconfig.json                   ← Extension host TypeScript config
+├── tsconfig.json                   ← TypeScript config (extension host)
 ├── src/
-│   ├── extension.ts                ← Activation: registers sidebar + manager
+│   ├── extension.ts                ← Activation: registers providers + commands
 │   ├── providers/
-│   │   └── SidebarProvider.ts      ← WebviewViewProvider (calls mcpClient)
+│   │   └── SidebarProvider.ts      ← WebviewViewProvider — calls mcpClient
 │   ├── panels/
-│   │   └── ManagerPanel.ts         ← WebviewPanel singleton (calls mcpClient)
+│   │   └── ManagerPanel.ts         ← WebviewPanel singleton — calls mcpClient
 │   └── services/
-│       └── mcpClient.ts            ← ✦ YOUR INTEGRATION POINT ✦
+│       └── mcpClient.ts            ← ★ YOUR INTEGRATION POINT ★
 ├── webview-ui/
 │   ├── sidebar/                    ← Sidebar React app (pre-built in dist/)
+│   │   └── dist/assets/            ← index.js + index.css (deterministic names)
 │   └── manager/                    ← Manager React app (pre-built in dist/)
-└── media/
-    └── traecodecontext.svg         ← Activity bar icon
+│       └── dist/assets/            ← index.js + index.css (deterministic names)
+├── media/
+│   └── traecodecontext.svg         ← Activity bar icon
+└── .vscode/
+    ├── launch.json                 ← F5 config (preLaunchTask = build:all)
+    └── tasks.json                  ← Build task definition
 ```

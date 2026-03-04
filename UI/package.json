@@ -10,7 +10,9 @@
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "build:all": "cd webview-ui/sidebar && npm run build && cd ../manager && npm run build && cd ../../ && npm run compile"
+    "build:sidebar": "cd webview-ui/sidebar && npm run build",
+    "build:manager": "cd webview-ui/manager && npm run build",
+    "build:all": "npm run build:sidebar && npm run build:manager && npm run compile"
   },
   "contributes": {
     "commands": [

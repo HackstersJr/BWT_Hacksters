@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { ManagerPanel } from '../panels/ManagerPanel';
 import { analyzeTutorial } from '../services/mcpClient';
 
 interface AnalyzeRequestMessage {
@@ -35,6 +36,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     webviewView.webview.html = this.getHtmlForWebview(webviewView.webview, sidebarDistUri);
 
     webviewView.webview.onDidReceiveMessage(async (message: unknown) => {
+      const msg = message as { type?: string };
+
+      if (msg?.type === 'openManager') {
+        ManagerPanel.render(this.extensionUri);
+        return;
+      }
+
       const maybe = message as Partial<AnalyzeRequestMessage>;
 
       if (maybe?.type !== 'analyzeRequest') {

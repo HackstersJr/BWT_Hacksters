@@ -1,30 +1,28 @@
-/* ═══════════════════════════════════════════════════════════════════════
- *  mcpClient.ts — Backend Integration Stub
+/**
+ * mcpClient.ts — Backend Integration Stub
  *
- *  ╔═══════════════════════════════════════════════════════════════════╗
- *  ║  BACKEND TEAM: This is the ONLY file you need to edit.          ║
- *  ║  Replace the mock implementations below with real MCP SDK calls.║
- *  ╚═══════════════════════════════════════════════════════════════════╝
- *
- *  Both functions currently return mock data after a simulated delay.
- *  The return types match the exact TypeScript interfaces consumed by
- *  the React webview UIs.
- * ═══════════════════════════════════════════════════════════════════════ */
+ * ┌─────────────────────────────────────────────────────────────────┐
+ * │  BACKEND TEAM: This is the ONLY file you need to edit.         │
+ * │  Replace the mock bodies below with real MCP SDK calls.        │
+ * │  Do NOT change the exported function signatures or interfaces. │
+ * └─────────────────────────────────────────────────────────────────┘
+ */
 
-// ─── Shared Types (mirror the React UI contracts) ────────────────────
+// ─── Interfaces (consumed by both UIs and providers) ─────────────────
 
 export interface TokenStats {
   promptTokens: number;
   completionTokens: number;
   totalTokens: number;
   savedTokens: number;
+  /** Percentage 0–100 */
   savedPercent: number;
 }
 
 export interface AnalyzeResult {
-  /** Human-readable context insight returned to the Sidebar UI */
+  /** Human-readable insight shown in the Sidebar */
   context: string;
-  /** Number of tokens saved by using code-selection context */
+  /** Tokens saved by including the code selection */
   tokensSaved: number;
 }
 
@@ -32,6 +30,7 @@ export interface SessionSummary {
   id: string;
   projectId: string;
   projectName: string;
+  /** ISO 8601 */
   timestamp: string;
   fileName: string;
   codeSummary: string;
@@ -53,35 +52,21 @@ export interface ManagerData {
   global: GlobalStats;
 }
 
-// ─── Sidebar: Analyze a tutorial URL with selected code ──────────────
+// ─── analyzeTutorial ─────────────────────────────────────────────────
 
 /**
- * Sends the tutorial URL and the user's selected code snippet to the
- * MCP backend and returns context-aware insights plus token savings.
+ * Sends the tutorial URL + selected code to the MCP backend.
+ * Returns a context-aware insight and token-savings metric.
  *
- * @param url          - The tutorial/documentation URL provided by the user
- * @param selectedCode - The code highlighted in the editor
- * @returns            - An AnalyzeResult consumed by the Sidebar React UI
+ * TODO (BACKEND): replace the setTimeout mock with your MCP SDK call, e.g.:
+ *   const client = getMcpClient();
+ *   const res = await client.callTool('analyze', { url, code: selectedCode });
+ *   return { context: res.context, tokensSaved: res.tokensSaved };
  */
 export async function analyzeTutorial(
   url: string,
   selectedCode: string
 ): Promise<AnalyzeResult> {
-  // ╔═══════════════════════════════════════════════════════════════════╗
-  // ║  TODO (BACKEND TEAM): Replace this entire function body with    ║
-  // ║  the actual MCP SDK call to your local MCP Server.              ║
-  // ║                                                                 ║
-  // ║  Example pseudocode:                                            ║
-  // ║    const client = getMcpClient();                               ║
-  // ║    const result = await client.callTool('analyze', {            ║
-  // ║      url,                                                       ║
-  // ║      code: selectedCode,                                        ║
-  // ║    });                                                          ║
-  // ║    return {                                                     ║
-  // ║      context: result.context,                                   ║
-  // ║      tokensSaved: result.tokensSaved,                           ║
-  // ║    };                                                           ║
-  // ╚═══════════════════════════════════════════════════════════════════╝
 
   return new Promise<AnalyzeResult>((resolve, reject) => {
     setTimeout(() => {
@@ -104,27 +89,19 @@ export async function analyzeTutorial(
   });
 }
 
-// ─── Manager: Fetch global session history ───────────────────────────
+// ─── getGlobalHistory ────────────────────────────────────────────────
 
 /**
- * Retrieves the full session history and aggregated global stats for
+ * Retrieves the full session history + aggregated global stats for
  * the Manager panel.
  *
- * @returns - A ManagerData object consumed by the Manager React UI
+ * TODO (BACKEND): replace the setTimeout mock with your MCP SDK call, e.g.:
+ *   const client = getMcpClient();
+ *   const history = await client.callTool('getHistory', {});
+ *   return { sessions: history.sessions, global: history.global };
  */
 export async function getGlobalHistory(): Promise<ManagerData> {
-  // ╔═══════════════════════════════════════════════════════════════════╗
-  // ║  TODO (BACKEND TEAM): Replace this entire function body with    ║
-  // ║  the actual MCP SDK call to retrieve stored session history.    ║
-  // ║                                                                 ║
-  // ║  Example pseudocode:                                            ║
-  // ║    const client = getMcpClient();                               ║
-  // ║    const history = await client.callTool('getHistory', {});     ║
-  // ║    return {                                                     ║
-  // ║      sessions: history.sessions,                                ║
-  // ║      global: history.global,                                    ║
-  // ║    };                                                           ║
-  // ╚═══════════════════════════════════════════════════════════════════╝
+  // Mock data — replace with real implementation
 
   const mockSessions: SessionSummary[] = [
     {

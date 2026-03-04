@@ -93,6 +93,14 @@ export default function App() {
       />
 
       <StatusPanel loading={loading} error={error} context={context} tokensSaved={tokensSaved} />
+
+      <button
+        type="button"
+        className="secondary-btn open-manager-btn"
+        onClick={() => postToHost({ type: 'openManager' })}
+      >
+        📊 Open Manager Dashboard
+      </button>
     </div>
   );
 }

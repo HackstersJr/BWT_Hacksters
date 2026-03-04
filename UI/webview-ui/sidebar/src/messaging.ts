@@ -20,8 +20,12 @@ export type AnalyzeErrorMessage = {
   };
 };
 
+export type OpenManagerMessage = {
+  type: 'openManager';
+};
+
 export type IncomingSidebarMessage = AnalyzeResponseMessage | AnalyzeErrorMessage;
-export type OutgoingSidebarMessage = AnalyzeRequestMessage;
+export type OutgoingSidebarMessage = AnalyzeRequestMessage | OpenManagerMessage;
 
 type VsCodeApi = {
   postMessage: (message: unknown) => void;

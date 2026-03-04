@@ -2,6 +2,8 @@
 
 :root {
   color-scheme: light dark;
+  --accent-green: var(--vscode-testing-iconPassed, #73c991);
+  --accent-amber: var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d);
 }
 
 * {
@@ -97,7 +99,7 @@ select, input[type="date"] {
 }
 
 select:focus, input[type="date"]:focus {
-  border-color: var(--vscode-focusBorder, #007acc);
+  border-color: var(--accent-green);
 }
 
 .toolbar-actions {
@@ -127,14 +129,14 @@ button {
 }
 
 .btn-primary {
-  background: var(--vscode-button-background, #007acc);
-  color: var(--vscode-button-foreground, #ffffff);
-  border-color: var(--vscode-button-background, #007acc);
+  background: var(--accent-green);
+  color: #1e1e1e;
+  border-color: var(--accent-green);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--vscode-button-hoverBackground, #0062a3);
-  border-color: var(--vscode-button-hoverBackground, #0062a3);
+  background: #5dbd80;
+  border-color: #5dbd80;
 }
 
 .btn-secondary {
@@ -180,7 +182,7 @@ button:disabled {
   font-size: 32px;
   font-weight: 300;
   line-height: 1.15;
-  color: var(--vscode-editor-foreground, #cccccc);
+  color: var(--accent-green);
 }
 
 .stat-card .stat-sub {
@@ -247,7 +249,7 @@ tbody tr {
 }
 
 tbody tr:hover {
-  background: var(--vscode-list-hoverBackground, #2a2d2e);
+  background: rgba(115, 201, 145, 0.06);
 }
 
 td {
@@ -271,13 +273,13 @@ td {
 /* ─── Links ────────────────────────────────────────── */
 
 a {
-  color: var(--vscode-textLink-foreground, #3794ff);
+  color: var(--accent-green);
   text-decoration: none;
   font-weight: 500;
 }
 
 a:hover {
-  color: var(--vscode-textLink-activeForeground, #3794ff);
+  color: #5dbd80;
   text-decoration: underline;
 }
 
