@@ -847,9 +847,10 @@ async function delegateToLocalSubagent(input: DelegateInput): Promise<JsonRecord
   const maxIterations = clampInteger(input.max_iterations, 6, 1, 10);
   const repoRoot = path.resolve(process.env.AXON_REPO_ROOT || process.cwd());
   const model = process.env.LOCAL_MODEL || "local-model";
+  const lmStudioBaseUrl = process.env.LM_STUDIO_BASE_URL || "http://localhost:1234/v1";
 
   const client = new OpenAI({
-    baseURL: "http://localhost:1234/v1",
+    baseURL: lmStudioBaseUrl,
     apiKey: process.env.OPENAI_API_KEY || "lm-studio",
   });
 
