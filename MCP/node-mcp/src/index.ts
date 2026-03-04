@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import path from "node:path";
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -115,13 +116,24 @@ function parseStrictBackendJson(stdout: string): JsonRecord | null {
 }
 
 async function runAxonBackendTool(tool: string, args: JsonRecord, repoRoot: string): Promise<JsonRecord> {
-  const pythonCmd = process.env.AXON_PYTHON_CMD || "python";
+  const pythonCmdRaw = process.env.AXON_PYTHON_CMD || "python";
+  const pythonCmd =
+    pythonCmdRaw.includes("/") && !path.isAbsolute(pythonCmdRaw)
+      ? path.resolve(repoRoot, pythonCmdRaw)
+      : pythonCmdRaw;
+  const pythonPathRaw = process.env.PYTHONPATH || path.join(repoRoot, "MCP", "axon", "src");
+  const pythonPath = path.isAbsolute(pythonPathRaw)
+    ? pythonPathRaw
+    : path.resolve(process.cwd(), pythonPathRaw);
 
   return await new Promise<JsonRecord>((resolve) => {
     const child = spawn(pythonCmd, ["-m", "axon.subagent_backend", "run-tool", tool, "--stdin-args"], {
       cwd: repoRoot,
       shell: false,
-      env: process.env,
+      env: {
+        ...process.env,
+        PYTHONPATH: pythonPath,
+      },
     });
 
     let timedOut = false;
@@ -366,7 +378,7 @@ const mutableInternalFunctionTools: ChatCompletionTool[] = [...internalFunctionT
 
 async function delegateToLocalSubagent(input: DelegateInput): Promise<JsonRecord> {
   const maxIterations = clampInteger(input.max_iterations, 6, 1, 10);
-  const repoRoot = process.env.AXON_REPO_ROOT || process.cwd();
+  const repoRoot = path.resolve(process.env.AXON_REPO_ROOT || process.cwd());
   const model = process.env.LOCAL_MODEL || "local-model";
 
   const client = new OpenAI({
