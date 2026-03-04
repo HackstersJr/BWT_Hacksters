@@ -8,11 +8,13 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "build-and-start": "npm run build && npm run start",
-    "smoke:mcp": "node scripts/mcp-smoke-test.mjs"
+    "smoke:mcp": "node scripts/mcp-smoke-test.mjs",
+    "smoke:rag": "node scripts/rag-direct-check.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.5",
-    "openai": "^4.104.0"
+    "openai": "^4.104.0",
+    "youtube-transcript": "^1.2.1"
   },
   "devDependencies": {
     "@types/node": "^22.13.10",
