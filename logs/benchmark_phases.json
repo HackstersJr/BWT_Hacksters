@@ -1,0 +1,47 @@
+{
+  "benchmarkStartedAt": "2026-03-04T09:32:57.361Z",
+  "benchmarkEndedAt": "2026-03-04T09:33:13.671Z",
+  "durationMs": 16309,
+  "baseline": {
+    "startedAt": "2026-03-04T09:32:59.902Z",
+    "endedAt": "2026-03-04T09:33:08.963Z",
+    "tasks": [
+      {
+        "task": "baseline_large_context_ingestion",
+        "startedAt": "2026-03-04T09:32:59.902Z",
+        "finishedAt": "2026-03-04T09:33:02.160Z"
+      },
+      {
+        "task": "baseline_full_document_embedding",
+        "startedAt": "2026-03-04T09:33:02.160Z",
+        "finishedAt": "2026-03-04T09:33:04.427Z"
+      },
+      {
+        "task": "baseline_transcript_extraction",
+        "startedAt": "2026-03-04T09:33:04.427Z",
+        "finishedAt": "2026-03-04T09:33:06.668Z"
+      },
+      {
+        "task": "baseline_document_parsing",
+        "startedAt": "2026-03-04T09:33:06.668Z",
+        "finishedAt": "2026-03-04T09:33:08.963Z"
+      }
+    ]
+  },
+  "mcp": {
+    "startedAt": "2026-03-04T09:33:08.963Z",
+    "endedAt": "2026-03-04T09:33:12.414Z",
+    "tasks": [
+      {
+        "task": "mcp_transcript_extraction",
+        "startedAt": "2026-03-04T09:33:08.964Z",
+        "finishedAt": "2026-03-04T09:33:10.674Z"
+      },
+      {
+        "task": "mcp_document_parsing",
+        "startedAt": "2026-03-04T09:33:10.674Z",
+        "finishedAt": "2026-03-04T09:33:12.414Z"
+      }
+    ]
+  }
+}
