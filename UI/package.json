@@ -1,0 +1,33 @@
+{
+  "name": "traecodecontext",
+  "displayName": "TraeCodeContext",
+  "description": "Context-aware coding insights in VS Code",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "traecodecontext",
+          "title": "TraeCodeContext",
+          "icon": "media/traecodecontext.svg"
+        }
+      ]
+    },
+    "views": {
+      "traecodecontext": [
+        {
+          "id": "traecodecontext-sidebar",
+          "name": "TraeCodeContext"
+        }
+      ]
+    }
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "vscode": "^1.1.37"
+  }
+}
