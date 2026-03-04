@@ -76,6 +76,10 @@
 ### Supporting docs
 - `MCP/README.md`
   - Node MCP MVP + environment variable notes
+- `MCP/requirements.txt`
+  - Python install entry for local editable Axon package
+- `MCP/bootstrap.py`
+  - Cross-platform one-command setup for Python + Node MCP
 
 ---
 
@@ -172,6 +176,24 @@ npm run smoke:mcp
 
 ## Environment variables and run instructions
 
+### Quick setup (new system)
+From repository root:
+
+```bash
+python MCP/bootstrap.py
+```
+
+What it does:
+- creates/uses repo-root `.venv`
+- installs Python dependencies from `MCP/requirements.txt` (editable `MCP/axon`)
+- installs Node dependencies for `MCP/node-mcp`
+- builds Node MCP and runs smoke tests (`npm run smoke:mcp`)
+
+Optional flags:
+- `--skip-node`
+- `--skip-build`
+- `--skip-smoke`
+
 ### Environment variables
 - Node MCP runtime:
   - `OPENAI_API_KEY` (optional; defaults to `lm-studio`)
@@ -184,6 +206,7 @@ npm run smoke:mcp
 ### Run instructions
 1. Axon Python env ready (from repo root):
    - ensure Python can import `axon` and Axon MCP server can run
+  - recommended bootstrap command: `python MCP/bootstrap.py`
 2. Start via MCP client using `.mcp.json`, or run manually:
    - Node MCP:
      - `cd MCP/node-mcp && npm run build-and-start`
