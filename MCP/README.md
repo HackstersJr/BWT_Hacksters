@@ -16,6 +16,10 @@ Environment variables:
 - `AXON_PYTHON_CMD` (optional Python command, default: `python`)
 - `AXON_REPO_ROOT` (optional repository root for Axon/RAG calls, default: current working directory)
 
+MCP config files:
+- Workspace-agnostic config: `.mcp.json` (top-level key: `mcpServers`)
+- VS Code local config: `.vscode/mcp.json` (top-level key: `servers`)
+
 ## Overview
 
 This MCP server coordinates two primary domains of context:
@@ -24,30 +28,36 @@ This MCP server coordinates two primary domains of context:
 
 By marrying the exact structural impact of a code change (via the Axon knowledge graph) with user-provided external learning resources, our agent is guided to produce precise, hallucination-free edits.
 
-## Available MCP Tools
+## Available MCP Tool Architecture
 
-This server exposes two specialized tool calls for the AI agent to orchestrate codebase changes and gather external knowledge:
+The Node MCP exposes exactly one external MCP tool to the IDE agent:
 
-### 1. Codebase Changes Tool
-**Powered by Axon**
-Instead of relying on flat text searches or full-repo grepping, this tool leverages [Axon](https://github.com/harshkedia177/axon) to understand the codebase as a structural graph. 
-- Analyzes callers, callees, type dependencies, coupled files, and execution flows.
-- When the user highlights a code block in the IDE UI, this tool enriches that selection with its true structural context, predicting what else will break or needs updating (using queries akin to `axon_query`, `axon_impact`, or `axon_context`).
-- Ensures that code generation remains bounded to actual programmatic dependencies rather than noise.
+### `delegate_to_local_subagent` (external MCP tool)
+- This is the only tool visible to the main IDE agent.
+- Input: user prompt + highlighted code context.
+- Behavior: delegates execution to a local subagent loop (LM Studio OpenAI-compatible endpoint) and returns distilled output.
 
-### 2. Knowledge Base Tool
-**Powered by External Extractors & Local Lightweight Model**
-- Takes a user-provided URL (from a **separate UI**) pointing to a YouTube tutorial, web article, or official documentation.
-- Automatically detects the source type, and extracts the transcript or text payload.
-- Passes this payload to a **local, lightweight model** which distills the content and returns only the required knowledge back to the main IDE agent.
-- Combines the distilled tutorial insights with the explicitly selected code and its structural graph footprint to generate accurate code suggestions.
+### Internal tools used by the local subagent (not externally exposed)
 
-### 3. Unified External Resource Analyzer (`analyze_external_resource`)
-**Powered by Extractors + Axon KuzuBackend**
-- Merges URL-based extraction with graph-aware code context in a single MCP entry point.
-- Receives both a resource URL and the user-highlighted code context from the IDE.
-- Verifies that highlighted code belongs to the current project graph before analysis.
-- Optionally enriches the local graph by persisting resource-to-symbol relationships for future team queries.
+#### Axon graph internal tools
+- `axon_query`, `axon_context`, `axon_impact`, `axon_dead_code`, `axon_detect_changes`, `axon_cypher`
+
+#### External resource / knowledge tools
+- `rag_extract_resource`: extracts web docs or YouTube transcripts and persists snippets into `.axon/knowledge_base/resources.jsonl`
+- `rag_query_knowledge`: retrieves relevant persisted snippets for future prompts
+- `rag_store_note`: persists distilled notes linked to source URL/symbol metadata
+
+## Tested status
+
+Current validated paths:
+- Node MCP tool registration (`delegate_to_local_subagent`)
+- Axon MCP tool registration and basic calls (`axon_list_repos`)
+- Direct extraction + persistence (`smoke:rag` with web URL)
+- Delegate end-to-end flow through LM Studio (`/v1/chat/completions` + MCP call)
+
+Helpful commands:
+- `cd MCP/node-mcp && npm run smoke:mcp`
+- `cd MCP/node-mcp && npm run smoke:rag -- https://example.com`
 
 ## Security Model
 
@@ -56,7 +66,7 @@ To safely support URL ingestion and optional caching, the unified tool follows s
 ### 1. Network Security (SSRF Mitigation)
 - **Protocol Allowlist**: Accepts only `http://` and `https://` URLs.
 - **Protocol Denylist**: Rejects unsafe schemes such as `file://`, `ftp://`, and other non-web protocols.
-- **Local Target Blocking**: Rejects requests to `localhost`, `127.0.0.1`, `0.0.0.0`, and private/internal network ranges.
+- **Local Target Blocking**: Rejects `localhost`, private/local IP literals, and hostnames resolving to private/local addresses (IPv4 + loopback/private/link-local IPv6 ranges).
 - **Recommended Domain Allowlist (Hackathon Mode)**: Optionally restricts sources to trusted domains such as `youtube.com`, `youtu.be`, `medium.com`, `dev.to`, `github.com`, and official documentation sites.
 
 ### 2. File System Security (Workspace-Bounded I/O)
@@ -67,13 +77,12 @@ To safely support URL ingestion and optional caching, the unified tool follows s
 
 ### 3. Graph Security and Validation
 - Uses direct access to Axon's `storage` (`KuzuBackend`) when integrated into `server.py`.
-- Verifies highlighted code or symbol context exists in the current graph prior to processing external knowledge.
-- Prevents analysis of code selections that do not belong to the indexed project.
+- `linked_symbol` metadata can be attached to persisted external knowledge.
+- Strict graph-membership verification before external extraction is a planned hardening step.
 
 ### 4. Knowledge Graph Enrichment (Optional)
-- After extracting and distilling a tutorial/resource, the tool can persist it as a node in Kuzu.
-- Creates an edge from the extracted resource to the selected code symbol/function.
-- Enables long-term, queryable team memory (for example: "which tutorial informed this function?").
+- Current implementation persists external knowledge in `.axon/knowledge_base/resources.jsonl` for retrieval by the subagent.
+- Kuzu node/edge enrichment for external resources is optional future work.
 
 ## Core Goals
 

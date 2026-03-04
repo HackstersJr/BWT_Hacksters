@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import platform
+import shutil
 import subprocess
 import sys
 import venv
@@ -59,7 +60,24 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Skip MCP smoke tests",
     )
+    parser.add_argument(
+        "--skip-rag-smoke",
+        action="store_true",
+        help="Skip direct extraction smoke test (smoke:rag)",
+    )
+    parser.add_argument(
+        "--rag-url",
+        default="https://example.com",
+        help="URL used by smoke:rag check (default: https://example.com)",
+    )
     return parser.parse_args()
+
+
+def ensure_node_tooling() -> None:
+    if shutil.which("node") is None:
+        raise RuntimeError("Node.js is required but 'node' was not found in PATH.")
+    if shutil.which("npm") is None:
+        raise RuntimeError("npm is required but 'npm' was not found in PATH.")
 
 
 def main() -> None:
@@ -84,11 +102,14 @@ def main() -> None:
     run([str(python_exec), "-m", "pip", "install", "-r", str(requirements_file)], cwd=repo_root)
 
     if not args.skip_node:
+        ensure_node_tooling()
         run(["npm", "install"], cwd=node_mcp_root)
         if not args.skip_build:
             run(["npm", "run", "build"], cwd=node_mcp_root)
         if not args.skip_smoke:
             run(["npm", "run", "smoke:mcp"], cwd=node_mcp_root)
+            if not args.skip_rag_smoke:
+                run(["npm", "run", "smoke:rag", "--", args.rag_url], cwd=node_mcp_root)
 
     print("\n[done] Bootstrap complete.")
     print("[next] Configure LM Studio and run MCP client against .mcp.json for full delegate flow.")

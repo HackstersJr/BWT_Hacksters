@@ -22,6 +22,19 @@
   - exits early when model returns final text with no tool calls
 - Internal tools available to the LLM (not externally exposed as MCP tools):
   - `axon_query`, `axon_context`, `axon_impact`, `axon_dead_code`, `axon_detect_changes`, `axon_cypher`
+  - `rag_extract_resource`, `rag_query_knowledge`, `rag_store_note`
+
+### 2.1) External knowledge extraction + persistence
+- Added URL extraction capability for:
+  - YouTube transcript extraction (`youtube-transcript`)
+  - Web documentation extraction (`fetch` + HTML-to-text)
+- Added SSRF-safe guards:
+  - only `http/https`
+  - blocks localhost and private/local IP targets
+- Added workspace-bounded knowledge storage:
+  - `.axon/knowledge_base/resources.jsonl`
+- Added retrieval support:
+  - `rag_query_knowledge` returns relevant persisted snippets for future context.
 
 ### 3) Python Axon backend bridge for Node orchestration
 - Implemented strict JSON bridge CLI at `axon.subagent_backend`.
@@ -56,10 +69,12 @@
   - internal Axon tool dispatch + Python bridge subprocess integration
   - validation/timeouts/tool allowlist
 - `MCP/node-mcp/package.json`
-  - scripts: `build`, `start`, `build-and-start`, `smoke:mcp`
+  - scripts: `build`, `start`, `build-and-start`, `smoke:mcp`, `smoke:rag`
   - dependencies for MCP SDK + OpenAI client
 - `MCP/node-mcp/scripts/mcp-smoke-test.mjs`
   - stdio smoke tests for Node MCP and Axon MCP discoverability/callability
+- `MCP/node-mcp/scripts/rag-direct-check.mjs`
+  - direct no-LLM extraction/persistence smoke check for web or YouTube URL
 
 ### Axon bridge + MCP integration points
 - `MCP/axon/src/axon/subagent_backend.py`
@@ -72,6 +87,8 @@
 ### Project-level discoverability config
 - `.mcp.json`
   - local MCP server registration for both `node-delegate` and `axon`
+- `.vscode/mcp.json`
+  - VS Code MCP registration for both servers (uses `servers` key per VS Code schema)
 
 ### Supporting docs
 - `MCP/README.md`
@@ -134,6 +151,28 @@ Current project-root config:
 }
 ```
 
+VS Code MCP config shape (`.vscode/mcp.json`):
+
+```json
+{
+  "servers": {
+    "node-delegate": {
+      "command": "npm",
+      "args": ["run", "build-and-start"],
+      "cwd": "MCP/node-mcp"
+    },
+    "axon": {
+      "command": "../../.venv/bin/python",
+      "args": ["-m", "axon.mcp.server"],
+      "cwd": "MCP/axon",
+      "env": {
+        "PYTHONPATH": "src"
+      }
+    }
+  }
+}
+```
+
 ---
 
 ## Smoke test (without LM Studio)
@@ -143,6 +182,12 @@ From `MCP/node-mcp`:
 
 ```bash
 npm run smoke:mcp
+```
+
+Direct no-LLM extraction check:
+
+```bash
+npm run smoke:rag -- https://example.com
 ```
 
 ### Result snapshot (latest run)
@@ -187,7 +232,7 @@ What it does:
 - creates/uses repo-root `.venv`
 - installs Python dependencies from `MCP/requirements.txt` (editable `MCP/axon`)
 - installs Node dependencies for `MCP/node-mcp`
-- builds Node MCP and runs smoke tests (`npm run smoke:mcp`)
+- builds Node MCP and runs smoke tests (`npm run smoke:mcp` + `npm run smoke:rag -- https://example.com`)
 
 Optional flags:
 - `--skip-node`
@@ -214,6 +259,12 @@ Optional flags:
      - `cd MCP/axon && PYTHONPATH=src ../../.venv/bin/python -m axon.mcp.server`
 3. Smoke test:
    - `cd MCP/node-mcp && npm run smoke:mcp`
+
+### Final validation snapshot
+- Node MCP build: pass
+- Node/Axon MCP discoverability smoke: pass
+- Direct extraction + persistence smoke: pass
+- Delegate MCP end-to-end with LM Studio auth token + loaded model: pass
 
 ---
 
