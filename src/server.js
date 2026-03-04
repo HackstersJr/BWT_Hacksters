@@ -14,10 +14,17 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+const initializeSchema = require('./db/schema');
+
 // Start Server
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
+  initializeSchema().then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server listening on port ${PORT}`);
+    });
+  }).catch(err => {
+    console.error('Failed to initialize database schema on startup', err);
+    process.exit(1);
   });
 }
 
