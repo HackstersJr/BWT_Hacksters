@@ -1,0 +1,3 @@
+# Python dependencies for MCP bootstrap.
+# Installs Axon (and its transitive dependencies from pyproject.toml) in editable mode.
+-e ./axon
