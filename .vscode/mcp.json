@@ -1,0 +1,22 @@
+{
+  "servers": {
+    "node-delegate": {
+      "command": "npm",
+      "args": ["run", "build-and-start"],
+      "cwd": "MCP/node-mcp",
+      "env": {
+        "AXON_PYTHON_CMD": "./.venv/bin/python",
+        "AXON_REPO_ROOT": "../..",
+        "PYTHONPATH": "../axon/src"
+      }
+    },
+    "axon": {
+      "command": "../../.venv/bin/python",
+      "args": ["-m", "axon.mcp.server"],
+      "cwd": "MCP/axon",
+      "env": {
+        "PYTHONPATH": "src"
+      }
+    }
+  }
+}

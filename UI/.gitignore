@@ -1,0 +1,23 @@
+# ─── Dependencies ─────────────────────────────────────────
+node_modules/
+webview-ui/sidebar/node_modules/
+webview-ui/manager/node_modules/
+
+# ─── Compiled Extension Host ──────────────────────────────
+out/
+
+# ─── Compiled React Webview Apps ──────────────────────────
+webview-ui/sidebar/dist/
+webview-ui/manager/dist/
+webview-ui/sidebar/build/
+webview-ui/manager/build/
+
+# ─── VS Code / IDE ───────────────────────────────────────
+.vscode-test/
+*.vsix
+.vscode/
+
+# ─── OS & Logs ───────────────────────────────────────────
+.DS_Store
+npm-debug.log
+yarn-error.log

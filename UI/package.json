@@ -1,0 +1,54 @@
+{
+  "name": "traecodecontext",
+  "displayName": "TraeCodeContext",
+  "description": "Context-aware coding insights in VS Code",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "main": "./out/extension.js",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "build:sidebar": "cd webview-ui/sidebar && npm run build",
+    "build:manager": "cd webview-ui/manager && npm run build",
+    "build:all": "npm run build:sidebar && npm run build:manager && npm run compile"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "traecodecontext.openManager",
+        "title": "TraeCodeContext: Open History & Stats Manager"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "traecodecontext",
+          "title": "TraeCodeContext",
+          "icon": "media/traecodecontext.svg"
+        }
+      ]
+    },
+    "views": {
+      "traecodecontext": [
+        {
+          "id": "traecodecontext-sidebar",
+          "name": "TraeCodeContext",
+          "type": "webview"
+        }
+      ]
+    },
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "traecodecontext.openManager"
+        }
+      ]
+    }
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.6.2"
+  }
+}
