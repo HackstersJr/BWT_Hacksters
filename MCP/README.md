@@ -2,6 +2,20 @@
 
 This directory contains the Local MCP (Model Context Protocol) backend for the Trae Code Context extension. The backend serves as the core intelligence engine, combining codebase structural awareness with external knowledge extraction to provide highly relevant context without context rot.
 
+## Node MCP (MVP)
+
+A minimal Node.js MCP server is available at `MCP/node-mcp`.
+
+- Entrypoint: `dist/index.js` (build from `src/index.ts`)
+- Transport: stdio via `@modelcontextprotocol/sdk`
+- Exposed MCP tool: `delegate_to_local_subagent`
+
+Environment variables:
+- `OPENAI_API_KEY` (optional fallback: `lm-studio`)
+- `LOCAL_MODEL` (optional local model name, default: `local-model`)
+- `AXON_PYTHON_CMD` (optional Python command, default: `python`)
+- `AXON_REPO_ROOT` (optional repository root for Axon/RAG calls, default: current working directory)
+
 ## Overview
 
 This MCP server coordinates two primary domains of context:

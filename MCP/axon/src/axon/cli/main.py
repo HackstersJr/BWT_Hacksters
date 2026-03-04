@@ -307,6 +307,18 @@ def dead_code() -> None:
     console.print(result)
     storage.close()
 
+@app.command(name="detect-changes")
+def detect_changes(
+    diff: str = typer.Argument(..., help="Raw git diff output to map to affected symbols."),
+) -> None:
+    """Map raw git diff output to affected symbols."""
+    from axon.mcp.tools import handle_detect_changes
+
+    storage = _load_storage()
+    result = handle_detect_changes(storage, diff)
+    console.print(result)
+    storage.close()
+
 @app.command()
 def cypher(
     query: str = typer.Argument(..., help="Raw Cypher query to execute."),
