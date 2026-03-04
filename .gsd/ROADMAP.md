@@ -13,7 +13,7 @@
 ## Phases
 
 ### Phase 1: Foundation (Backend & Database)
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Setup the Express.js API, SQLite schema, and basic structure for the ERP core features (Users, Leaves, Assets). Role-Based Access Control logic starts here.
 
 ### Phase 2: Telemetry Tools (Scripting & LLM Wrapper)
