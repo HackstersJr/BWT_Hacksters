@@ -1,0 +1,17 @@
+{
+  "name": "performance_analysis",
+  "version": "1.0.0",
+  "description": "This folder contains resources and documentation for analyzing the performance of the Trae Code Context extension and its MCP backend.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@dqbd/tiktoken": "^1.0.22",
+    "gpt-tokenizer": "^3.4.0"
+  }
+}
